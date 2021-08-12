@@ -27,9 +27,9 @@
     }
 </%init>
 
-% if ($fs) {
+% if (%fs) {
 
-% while (my ($flanking_sequence, $marker_names) = each (%$fs)) {
+% while (my ($flanking_sequence, $marker_names) = each (%fs)) {
 
     <p><strong><% join(", ", @$marker_names) %></strong></p>
 

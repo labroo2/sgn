@@ -421,7 +421,7 @@ sub query {
     my $si = "SELECT materialized_markerview.nd_protocol_id, nd_protocol.name AS nd_protocol_name, species_name, reference_genome_name, marker_name, variant_name, chrom, pos, ref, alt, feature.residues AS flanking_sequence_ref, featureprop.value AS flanking_sequence_snp";
     my $fc = " FROM public.materialized_markerview";
     $fc .= " LEFT JOIN nd_protocol USING (nd_protocol_id)";
-    my $fi = $fc . " LEFT JOIN feature ON (materialized_markerview.marker_name = feature.uniquename)";
+    my $fi = $fc . " LEFT JOIN feature ON (materialized_markerview.marker_name = feature.uniquename AND materialized_markerview.species_name = (SELECT CONCAT(organism.genus, ' ', REGEXP_REPLACE(organism.species, CONCAT('^', organism.genus, ' '), '')) FROM public.organism WHERE organism.organism_id = feature.organism_id))";
     $fi .= " LEFT JOIN featureprop USING (feature_id)";
 
     # Add filter parameters
@@ -498,7 +498,9 @@ sub query {
 
     # Get the marker info
     my $query = $si . $fi . $w;
-    $query .= ((@where) ? " AND " : " WHERE ") . "(featureprop.type_id IN (SELECT cvterm_id FROM public.cvterm WHERE name = 'flanking_region') OR featureprop.type_id IS NULL)";
+    $query .= ((@where) ? " AND " : " WHERE ") . " (feature.type_id = (SELECT cvterm_id FROM public.cvterm WHERE name = 'markers') OR feature.type_id IS NULL)";
+    $query .= " AND (featureprop.type_id IN (SELECT cvterm_id FROM public.cvterm WHERE name = 'flanking_region') OR featureprop.type_id IS NULL)";
+    
     $query .= " ORDER BY marker_name";
     if ( defined $limit ) {
         $query .= " LIMIT ?";
