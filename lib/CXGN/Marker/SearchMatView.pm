@@ -512,19 +512,17 @@ sub query {
         push(@args, $offset);
     }
 
-    print STDERR "QUERY:\n";
-    print STDERR "$query\n";
-    use Data::Dumper;
-    print STDERR "ARGS:\n";
-    print STDERR Dumper \@args;
-    print STDERR "TOTAL MARKERS:\n";
-    print STDERR "$marker_count\n";
+    # print STDERR "QUERY:\n";
+    # print STDERR "$query\n";
+    # use Data::Dumper;
+    # print STDERR "ARGS:\n";
+    # print STDERR Dumper \@args;
+    # print STDERR "TOTAL MARKERS:\n";
+    # print STDERR "$marker_count\n";
 
     # Perform the Query
     my $h = $dbh->prepare($query);
     $h->execute(@args);
-
-    print STDERR "....QUERY COMPLETE\n";
 
     # Parse the results
     my %variants;
