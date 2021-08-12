@@ -24,21 +24,25 @@ David Waring <djw64@cornell.edu>
 
 <!-- FILTER BY NAME -->
 <&| /page/info_section.mas, title=>'Filter By Name', collapsible=>1, collapsed=>0 &>
-    <div class="well">
+    <div id="marker-name-well" class="well" style="min-height: 150px">
 
         <!-- Marker Name -->
         <div class="form-group">
             <label class="col-sm-3 control-label">Marker Name: </label>
             <div class="col-sm-4">
                 <select id="marker-name-match" class="form-control">
-                    <option value="exactly">Exactly</option>
+                    <option value="exact">Exactly</option>
                     <option value="contains">Contains</option>
                     <option value="starts_with">Starts With</option>
                     <option value="ends_with">Ends With</option>
+                    <option value="list">Multiple Marker Names</option>
                 </select>
             </div>
-            <div class="col-sm-5">
+            <div id="marker-name-single" class="col-sm-5">
                 <input id="marker-name" class="form-control" type="text" placeholder="Any Name" />
+            </div>
+            <div id="marker-name-list" class="col-sm-5" style="display: none">
+                <textarea id="marker-names" class="form-control" type="text" placeholder="Marker Names (one per line)" rows=5></textarea>
             </div>
         </div>
 
@@ -162,6 +166,7 @@ jQuery(document).ready(function() {
     getProtocols(_finishSetup);
 
     // Click / Change Listeners
+    jQuery('#marker-name-match').change(updateMarkerNames);
     jQuery('#marker-refmap').change(updateChromosomes).change(updatePositions).change(updateSpecies).change(updateProtocols);
     jQuery('#marker-chromosome').change(updatePositions);
     jQuery('#marker-species').change(updateRefMaps).change(updateProtocols);
@@ -193,8 +198,10 @@ function parseArgs() {
     SEL_PROTOCOL = _getValue("protocol");
 
     // Set the initial value of items that do need to be fetched from the DB
-    if ( SEL_MARKER_NAME ) jQuery("#marker-name").val(SEL_MARKER_NAME);
     if ( SEL_MARKER_NAME_MATCH ) jQuery("#marker-name-match").val(SEL_MARKER_NAME_MATCH);
+    updateMarkerNames();
+    if ( SEL_MARKER_NAME && SEL_MARKER_NAME_MATCH !== 'list' ) jQuery("#marker-name").val(SEL_MARKER_NAME);
+    if ( SEL_MARKER_NAME && SEL_MARKER_NAME_MATCH === 'list' ) jQuery("#marker-names").val(SEL_MARKER_NAME.replaceAll(",", "\n"));
     if ( SEL_REFMAP && SEL_CHROM && SEL_START ) jQuery("#marker-position-start").val(SEL_START);
     if ( SEL_REFMAP && SEL_CHROM && SEL_END ) jQuery("#marker-position-end").val(SEL_END);
 
@@ -427,6 +434,15 @@ function getMappedProtocols(callback) {
 //
 // DISPLAY FUNCTIONS
 //
+
+/**
+ * Toggle the display of the single / multiple marker name entry
+ */
+function updateMarkerNames() {
+    let match = jQuery("#marker-name-match").val();
+    jQuery("#marker-name-single").css("display", match !== 'list' ? 'block' : 'none');
+    jQuery("#marker-name-list").css("display", match === 'list' ? 'block' : 'none');
+}
 
 /**
  * Display the reference genomes and maps in the position filter
@@ -674,8 +690,9 @@ function updateProtocols() {
 function search() {
 
     // Get user inputs
-    let marker_name = jQuery('#marker-name').val();
     let marker_name_match = jQuery('#marker-name-match').val();
+    let marker_name = jQuery('#marker-name').val();
+    let marker_names = jQuery("#marker-names").val();
     let refmap = jQuery("#marker-refmap").val();
     let refmap_type = jQuery("#marker-refmap option:selected").data("type");
     let refmap_species = jQuery("#marker-refmap option:selected").data("species");
@@ -694,7 +711,8 @@ function search() {
 
     // Set search params
     let params = {};
-    if ( marker_name ) params.marker_name = marker_name;
+    if ( marker_name_match !== 'list' && marker_name ) params.marker_name = marker_name;
+    if ( marker_name_match === 'list' && marker_names ) params.marker_name = marker_names.split("\n");
     if ( marker_name_match ) params.marker_name_match = marker_name_match;
     if ( refmap_type || protocol_type ) params.type = refmap_type || protocol_type;
     if ( refmap ) params.refmap = refmap;

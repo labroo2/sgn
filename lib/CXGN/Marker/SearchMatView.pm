@@ -377,8 +377,8 @@ sub related_mapped_markers {
 #   - start = (optional) start position of query range
 #   - end = (optional) end position of query range
 #   - variant = (optional) variant name (exact, case-insensitive match)
-#   - name = (optional) marker name or variant name
-#   - name_match = (optional, default=exact) how to match (case-insensitively) the marker name (exact, contains, starts_with, ends_with)
+#   - name = (optional) marker name (or a comma-separated list of names, if name_match == 'list')
+#   - name_match = (optional, default=exact) how to match (case-insensitively) the marker name (exact, contains, starts_with, ends_with, list)
 #   - nd_protocol_ids = (optional) array ref of genotype protocol ids
 #   - limit = (optional, default=500) max number of markers to return
 #   - page = (optional, default=1) return a different set of $limit number of results, if more than $limit are found
@@ -456,16 +456,21 @@ sub query {
     }
     if ( defined $name && $name ne '' ) {
         if ( $name_match eq 'contains' ) {
-            push(@where, "(marker_name ILIKE ? OR variant_name ILIKE ?)");
-            push(@args, '%'.$name.'%', '%'.$name.'%');
+            push(@where, "(marker_name ILIKE ?)");
+            push(@args, '%'.$name.'%');
         }
         elsif ( $name_match eq 'starts_with' ) {
-            push(@where, "(marker_name ILIKE ? OR variant_name ILIKE ?)");
-            push(@args, $name.'%', $name.'%');
+            push(@where, "(marker_name ILIKE ?)");
+            push(@args, $name.'%');
         }
         elsif ( $name_match eq 'ends_with' ) {
-            push(@where, "(marker_name ILIKE ? OR variant_name ILIKE ?)");
-            push(@args, '%'.$name, '%'.$name);
+            push(@where, "(marker_name ILIKE)");
+            push(@args, '%'.$name);
+        }
+        elsif ( $name_match eq 'list' ) {
+            my @names = split(',', $name);
+            push(@where, "(marker_name IN(@{[join',', ('?') x @names]}))");
+            push(@args, @names);
         }
         else {
             push(@where, "(UPPER(marker_name) = UPPER(?) OR UPPER(variant_name) = UPPER(?))");
@@ -505,17 +510,19 @@ sub query {
         push(@args, $offset);
     }
 
-    # print STDERR "QUERY:\n";
-    # print STDERR "$query\n";
-    # use Data::Dumper;
-    # print STDERR "ARGS:\n";
-    # print STDERR Dumper \@args;
-    # print STDERR "TOTAL MARKERS:\n";
-    # print STDERR "$marker_count\n";
+    print STDERR "QUERY:\n";
+    print STDERR "$query\n";
+    use Data::Dumper;
+    print STDERR "ARGS:\n";
+    print STDERR Dumper \@args;
+    print STDERR "TOTAL MARKERS:\n";
+    print STDERR "$marker_count\n";
 
     # Perform the Query
     my $h = $dbh->prepare($query);
     $h->execute(@args);
+
+    print STDERR "....QUERY COMPLETE\n";
 
     # Parse the results
     my %variants;
