@@ -1,7 +1,7 @@
 <%doc>
 
 =head1 NAME
- 
+
 /solgs/search/list_type_training_population.mas - template for list type training populations
 
 =AUTHOR
@@ -16,33 +16,37 @@ Isaak Y Tecle (iyt2@cornell.edu)
 
 </%args>
 
+<%perl>
+    my $list_link = '<a href="/breeders/search">list</a>';
+    my $ds_link = '<a href="/breeders/search?dsp=trials,plots&dsr=/solgs">dataset</a>';
+</%perl>
+
 <& /util/import_javascript.mas, classes => ["solGS.listTypeTrainingPopulation"] &>
 
-<&| /page/info_section.mas, 
-    collapsible => 1, 
+<&| /page/info_section.mas,
+    collapsible => 1,
   collapsed   => 0,
   title       => "Or use a list or dataset type training population or create a new one",
 &>
 
   <div class="fileupload-buttonbar">
-   
+
     <div class="list_upload" id="list_label">
        <label for="list_type_training_pops">Select a training population </label>
-    </div>   
+    </div>
       <div class="list_upload" id="list_type_training_pops_list"></div>
     <div  class="list_upload" id="list_type_training_pop_load">
       <input type="button"  value="Go" />
-    </div>  
-    <div class="list_upload" style="margin-left:5px">     
+    </div>
+    <div class="list_upload" style="margin-left:5px">
       <i class="glyphicon-plus"></i>
-      <a href="/solgs/breeder_search" style="color:#ffffff">Make a new list or dataset of plots or trials</a>  
+      Make a new <% $list_link %> or <% $ds_link %> of trials &|or plots
     </div>
     <br>
-    <br>  
+    <br>
     <div class="sub_infosectioncontent" id="list_reference_populations" style="display:none"></div>
     <br>
 
   </div>
 
 </&>
-
