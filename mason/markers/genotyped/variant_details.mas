@@ -47,16 +47,6 @@ A hashref containing the variants and the markers related to one or more of the 
     my $chrom = ${$markers}[0]->{'chrom'};
     my $pos = ${$markers}[0]->{'pos'};
 
-    # Get flanking sequence(s) from markers
-    my %fs = ();
-    foreach my $marker (@$markers) {
-        my $f = $marker->{flanking_sequence_snp};
-        my $m = $marker->{marker_name};
-        my @ms = exists($fs{$f}) ? @{$fs{$f}} : ();
-        push(@ms, $m);
-        $fs{$f} = \@ms;
-    }
-
     # Set title
     my $title = $species . " Markers";
     my $subtitle = "Chromosome " . $chrom . " @ " . $pos;
@@ -93,7 +83,7 @@ A hashref containing the variants and the markers related to one or more of the 
 
 <!-- FLANKING SEQUENCE -->
 <&| /page/info_section.mas, title=>'Flanking Sequence', collapsible=>1, collapsed=>0 &>
-    <& /markers/genotyped/flanking_sequence.mas, fs => \%fs &>
+    <& /markers/genotyped/flanking_sequence.mas, markers => $markers &>
 </&>
 
 

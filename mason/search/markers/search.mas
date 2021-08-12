@@ -134,7 +134,7 @@ David Waring <djw64@cornell.edu>
 </&>
 
 
-<button class="btn btn-primary btn-block marker-search-button">Search</button>
+<button class="btn btn-primary btn-block marker-search-button" disabled>Search</button>
 
 
 
@@ -154,10 +154,12 @@ let PROTOCOLS = undefined;              // Protocols retrieved from the database
 jQuery(document).ready(function() {
 
     // Search Setup Functions
+    let setup_count = 0;
+    let setup_total = 3;
     parseArgs();
-    getRefMaps();
-    getChromosomes();
-    getProtocols();
+    getRefMaps(_finishSetup);
+    getChromosomes(_finishSetup);
+    getProtocols(_finishSetup);
 
     // Click / Change Listeners
     jQuery('#marker-refmap').change(updateChromosomes).change(updatePositions).change(updateSpecies).change(updateProtocols);
@@ -165,6 +167,13 @@ jQuery(document).ready(function() {
     jQuery('#marker-species').change(updateRefMaps).change(updateProtocols);
     jQuery('#marker-protocol').change(updateSpecies).change(updateRefMaps);
     jQuery('.marker-search-button').click(search);
+
+    function _finishSetup() {
+        setup_count++;
+        if ( setup_count >= setup_total ) {
+            jQuery(".marker-search-button").attr("disabled", false);
+        }
+    }
 
 });
 
@@ -205,8 +214,9 @@ function parseArgs() {
  * - call getReferences()
  * - call getMaps()
  * - call updateRefMaps()
+ * @param {Function} [callback] Callback function()
  */
-function getRefMaps() {
+function getRefMaps(callback) {
     let references = undefined;
     let maps = undefined;
 
@@ -226,6 +236,7 @@ function getRefMaps() {
                 mapped: maps
             };
             updateRefMaps();
+            if ( callback ) return callback();
         }
     }
 }
@@ -274,8 +285,9 @@ function getMaps(callback) {
  * - Call getMappedChromosomes()
  * - Set the CHROMOSOMES objects
  * - Call updateChromosomes()
+ * @param {Function} [callback] Callback function()
  */
-function getChromosomes() {
+function getChromosomes(callback) {
     let genotyped = undefined;
     let mapped = undefined;
 
@@ -295,6 +307,7 @@ function getChromosomes() {
                 mapped: mapped
             }
             updateChromosomes();
+            if ( callback ) return callback();
         }
     }
 }
@@ -344,8 +357,9 @@ function getMappedChromosomes(callback) {
  * - Call getMappedProtocols()
  * - Set the PROTOCOLS objects
  * - Call updateProtocols()
+ * @param {Function} [callback] Callback function()
  */
-function getProtocols() {
+function getProtocols(callback) {
     let genotyped = undefined;
     let mapped = undefined;
 
@@ -365,6 +379,7 @@ function getProtocols() {
                 mapped: mapped
             }
             updateProtocols();
+            if ( callback ) return callback();
         }
     }
 }

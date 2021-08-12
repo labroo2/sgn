@@ -151,7 +151,7 @@ jQuery(document).ready(function() {
                                 data.indexOf("[")-5,
                                 data.indexOf("]")+5+1
                             );
-                            return "<span class='fs-span' data-fs-marker=" + row.marker_name + " data-fs-snp=" + row.flanking_sequence_snp + " data-fs-ref=" + row.flanking_sequence_ref + ">" + s + "</span><br />";
+                            return "<span class='fs-span' data-fs-marker=" + row.marker_name + " data-fs-snp=" + row.flanking_sequence_snp + " data-fs-ref=" + row.flanking_sequence_ref + ">..." + s + "...</span><br />";
                         }
                         else {
                             return data;
