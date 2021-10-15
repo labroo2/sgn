@@ -9,6 +9,7 @@ use CXGN::Chado::Organism;
 use CXGN::BrAPI::Pagination;
 use CXGN::BrAPI::FileRequest;
 use CXGN::Phenotypes::StorePhenotypes;
+use CXGN::TimeUtils;
 use utf8;
 use JSON;
 
@@ -92,7 +93,7 @@ sub search {
 
                 if ($counter >= $start_index && $counter <= $end_index) {
                     push @data_window, {
-                        additionalInfo=>undef,
+                        additionalInfo=>$_->{additional_info},
                         externalReferences=>undef,
                         germplasmDbId => qq|$obs_unit->{germplasm_stock_id}|,
                         germplasmName => $obs_unit->{germplasm_uniquename},
@@ -101,7 +102,7 @@ sub search {
                         observationDbId => $observation_id,
                         observationVariableDbId => qq|$_->{trait_id}|,
                         observationVariableName => $_->{trait_name},
-                        observationTimeStamp => $obs_timestamp,
+                        observationTimeStamp => CXGN::TimeUtils::db_time_to_iso($obs_timestamp),
                         season => \@season,
                         collector => $_->{operator},
                         studyDbId => qq|$obs_unit->{trial_id}|,
@@ -187,7 +188,7 @@ sub detail {
             if ( $end_time && $obs_timestamp > $end_time ) { next; } #skip observations after date range
 
             push @data_window, {
-                additionalInfo=>undef,
+                additionalInfo=>$_->{additional_info},,
                 externalReferences=>undef,
                 germplasmDbId => qq|$obs_unit->{germplasm_stock_id}|,
                 germplasmName => $obs_unit->{germplasm_uniquename},
@@ -196,7 +197,7 @@ sub detail {
                 observationDbId => qq|$_->{phenotype_id}|,
                 observationVariableDbId => qq|$_->{trait_id}|,
                 observationVariableName => $_->{trait_name},
-                observationTimeStamp => $obs_timestamp,
+                observationTimeStamp => CXGN::TimeUtils::db_time_to_iso($obs_timestamp),
                 season => \@season,
                 collector => $_->{operator},
                 studyDbId => qq|$obs_unit->{trial_id}|,
@@ -569,6 +570,14 @@ sub _search_observation_id {
                     }
                 }
             }
+            #get additional info
+            my $additional_info_type_id = SGN::Model::Cvterm->get_cvterm_row($schema, 'phenotype_additional_info', 'phenotype_property')->cvterm_id();
+            my $rs = $schema->resultset("Phenotype::Phenotypeprop")->search({ type_id => $additional_info_type_id, phenotype_id => $pheno_id });
+            if ($rs->count() > 0){
+                my $additional_info_json = $rs->first()->value();
+                $o->{additional_info}  = $additional_info_json ? decode_json($additional_info_json) : undef;
+            }
+
             push @return_observations, $o;
         }
 
